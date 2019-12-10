@@ -1,0 +1,15 @@
+﻿@page
+@using GBIS.Components
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Gautam Buddha International Stadium</h1>
+    <p>Learn about <a href="https://www.youtube.com/watch?v=AvFj2tCV9mU">Gautam Buddha International Stadium</a>.</p>
+</div>
+
+@(await Html.RenderComponentAsync<StadiumList>(RenderMode.ServerPrerendered))
+
+<script src="_framework/blazor.server.js"></script>

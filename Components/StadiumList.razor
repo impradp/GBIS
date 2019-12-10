@@ -1,0 +1,106 @@
+﻿@using Microsoft.AspNetCore.Components.Web
+@using GBIS.Models
+@using GBIS.Services
+@inject JsonFileStadiumService StadiumService
+
+<div class="card-columns">
+    @foreach (var stadium in StadiumService.GetStadiums())
+    {
+        <div class="card">
+            <div class="card-img" style="background-image: url('@stadium.Image');"></div>
+            <div class="card-body">
+                <div class="card-title"><h5>@stadium.Title</h5></div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <small class="text-muted">
+                <button @onclick="(e=>SelectStadium(stadium.Id))" data-toggle="modal" data-target="#stadiumModal" class="btn btn-primary">More Info</button>
+            </small>
+        </div>
+    }
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+@if (selectedStadium != null)
+{
+    <div class="modal fade" id="stadiumModal" tabindex="-1" role="dialog" aria-labelledby="stadiumTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="stadiumTitle">@selectedStadium.Title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-img" style="background-image: url('@selectedStadium.Image');">
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">@selectedStadium.Description</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    @if (voteCount == 0)
+                    {
+                        <span>Be the first to Vote!</span>
+                    }
+                    else
+                    {
+                        <span>@voteCount @voteLabel</span>
+                    }
+                    @for(int i = 0; i < 6; i++)
+                    {
+                        var currentStar = i;
+                        if(i<=currentRating)
+                        {
+                            <span class="fa-star fa checked" @onclick="(e=>SubmitRating(currentStar))"></span>
+                        }
+                        else
+                        {
+                            <span class="fa-star fa" @onclick="(e=>SubmitRating(currentStar))"></span>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    Stadium selectedStadium;
+    string selectedStadiumId;
+    void SelectStadium(string StadiumId)
+    {
+        selectedStadiumId = StadiumId;
+        selectedStadium = StadiumService.GetStadiums().First(x => x.Id == StadiumId);
+        GetCurrentRating();
+    }
+    int currentRating = 0;
+    int voteCount = 0;
+    string voteLabel;
+
+    void GetCurrentRating()
+    {
+        if (selectedStadium.Ratings==null)
+        {
+            currentRating = 0;
+            voteCount = 0;
+        }
+        else
+        {
+            voteCount = selectedStadium.Ratings.Count();
+            voteLabel = voteCount > 1 ? "Votes" : "Vote";
+            currentRating = selectedStadium.Ratings.Sum() / voteCount;
+        }
+        System.Console.WriteLine($"Current Rating for {selectedStadium.Id}:{currentRating}");
+    }
+    void SubmitRating(int rating)
+    {
+        System.Console.WriteLine($"Rating received for {selectedStadium.Id}:{rating}");
+        StadiumService.AddRating(selectedStadiumId, rating);
+        SelectStadium(selectedStadiumId);
+    }
+}
